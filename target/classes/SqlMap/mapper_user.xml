@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace：命名空间，用于隔离sql, 命名空间 user.findUserById-->
+<mapper namespace="user">
+    <!-- 通过ID查询一个用户id名字，namespace+id用来定位具体的sql
+     parameterType：参数类型
+     resultType：返回值，如果bean与数据库一一对应，则会自动映射
+     where id=#{v}，#{} 占位符，里面要写一个任意字符
+    -->
+    <resultMap type="com.Debt.Debt" id="debtMap">
+    <!--
+        column:数据库中表的字段
+        property：数据库中表所有映射的实体类javaBean中的属性名
+     -->
+        <result column="id" property="autoID"/>
+        <result column="bond_id" property="ID"/>
+        <result column="bond_name" property="name"/>
+        <result column="net_price" property="netPrice"/>
+        <result column="clear_speed" property="clearSpeed"/>
+        <result column="repay_dates" property="repayDate"/>
+        <result column="YTM" property="YTM"/>
+        <result column="number" property="number"/>
+    </resultMap>
+    <insert id="insertOneItem" parameterType="com.Debt.Debt">
+        insert into bond(id,bond_id,bond_name,net_price,clear_speed,repay_dates,YTM,number) values(#{autoID},#{ID},#{name},#{netPrice},#{clearSpeed},#{repayDate},#{YTM},#{number})
+    </insert>
+    <select id="selectAll" resultMap="debtMap">
+        select * from bond
+    </select>
+    <select id="selectNumber" parameterType="com.Debt.Debt" resultType="com.Debt.Debt">
+        select number from bond where id = #autoID
+    </select>
+    <update id="buyDebt" parameterType="com.Debt.Debt" >
+        update bond set number = #{number} where id = #{autoID}
+    </update>
+    <delete id="deleteDebt" parameterType="com.Debt.Debt">
+        delete from bond where id = #{autoID}
+    </delete>
+    <update id="createTableOnTime" parameterType="com.generateDateTable.DebtWithDate" >
+        CREATE TABLE `citic`.`#{date}`  (
+        `id` int NOT NULL AUTO_INCREMENT,
+        `bond_id` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+        `bond_name` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+        `net_price` float NULL DEFAULT NULL,
+        `clear_speed` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+        `repay_dates` date NULL DEFAULT NULL,
+        `YTM` float NULL DEFAULT NULL,
+        `number` int NULL DEFAULT NULL,
+        PRIMARY KEY (`id`) USING BTREE
+        UNIQUE INDEX `index_bondid`(`bond_id`) USING BTREE
+        ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+    </update>
+    <insert id="insertUser" parameterType="com.Debt.User">
+        insert into register(autoID,account,password)
+        values(#{autoID},#{account},#{password})
+    </insert>
+    <select id="selectAllOnRegister"  resultType="com.Debt.User">
+        select * from register
+    </select>
+    <insert id="insertTransaction" parameterType="com.Debt.Trans">
+        insert into transactions(autoID,userID,date,boughtScale,debtID) values(#{autoID},#{userID},#{date},#{boughtScale},#{debtID})
+    </insert>
+
+
+</mapper>
