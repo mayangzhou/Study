@@ -23,6 +23,17 @@
         <result column="YTM" property="YTM"/>
         <result column="number" property="number"/>
     </resultMap>
+    <resultMap id="debtDateMap" type="com.generateDateTable.DebtWithDate">
+        <result column="date" property="date"/>
+        <result column="id" property="Debt.autoID"/>
+        <result column="bond_id" property="Debt.ID"/>
+        <result column="bond_name" property="Debt.name"/>
+        <result column="net_price" property="Debt.netPrice"/>
+        <result column="clear_speed" property="Debt.clearSpeed"/>
+        <result column="repay_dates" property="Debt.repayDate"/>
+        <result column="YTM" property="Debt.YTM"/>
+        <result column="number" property="Debt.number"/>
+    </resultMap>
     <insert id="insertOneItem" parameterType="com.Debt.Debt">
         insert into bond(id,bond_id,bond_name,net_price,clear_speed,repay_dates,YTM,number) values(#{autoID},#{ID},#{name},#{netPrice},#{clearSpeed},#{repayDate},#{YTM},#{number})
     </insert>
@@ -38,8 +49,8 @@
     <delete id="deleteDebt" parameterType="com.Debt.Debt">
         delete from bond where id = #{autoID}
     </delete>
-    <update id="createTableOnTime" parameterType="com.generateDateTable.DebtWithDate" >
-        CREATE TABLE `citic`.`#{date}`  (
+    <update id="createTableOnTime" parameterType="java.lang.String" >
+        CREATE TABLE `citic`.`${_parameter}`  (
         `id` int NOT NULL AUTO_INCREMENT,
         `bond_id` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
         `bond_name` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
@@ -48,7 +59,7 @@
         `repay_dates` date NULL DEFAULT NULL,
         `YTM` float NULL DEFAULT NULL,
         `number` int NULL DEFAULT NULL,
-        PRIMARY KEY (`id`) USING BTREE
+        PRIMARY KEY (`id`) USING BTREE,
         UNIQUE INDEX `index_bondid`(`bond_id`) USING BTREE
         ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
     </update>
@@ -62,6 +73,22 @@
     <insert id="insertTransaction" parameterType="com.Debt.Trans">
         insert into transactions(autoID,userID,date,boughtScale,debtID) values(#{autoID},#{userID},#{date},#{boughtScale},#{debtID})
     </insert>
+    <select id="selectPreviousData" parameterType="java.lang.String" resultMap="debtMap">
+        select * from `${_parameter}`
+    </select>
+    <select id="selectAllTransOnDate" parameterType="java.lang.String" resultType="com.Debt.Trans">
+        select * from transactions where date = #{_parameter}
+    </select>
+    <delete id="dropTable" parameterType="java.lang.String">
+        drop table if exists `${_parameter}`
+    </delete>
+    <insert id="insertOnTable" parameterType="com.generateDateTable.DebtWithDate">
+        insert into `${date}` (id,bond_id,bond_name,net_price,clear_speed,repay_dates,YTM,number)
+        values(#{autoID},#{ID},#{name},#{netPrice},#{clearSpeed},#{repayDate},#{YTM},#{number})
+    </insert>
+    <update id="tranOne" parameterType="com.generateDateTable.DebtWithDate">
+        update `${date}` set number = #{number} where id = #{autoID}
+    </update>
 
 
 </mapper>

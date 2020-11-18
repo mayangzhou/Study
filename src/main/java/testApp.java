@@ -1,4 +1,5 @@
 import com.Debt.*;
+import  com.generateDateTable.*;
 import com.sun.corba.se.impl.resolver.SplitLocalResolverImpl;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
@@ -91,7 +92,6 @@ public class testApp {
         Random r1 = new Random();
         for (int i = 0; i < calendar.size(); i++) {
             for (int j = 0; j <40; j++) {
-                r1.setSeed(i+j+1000);
                 Trans trans = new Trans();
                 trans.setBoughtScale(r1.nextInt(100)+1);
                 trans.setDate(calendar.get(i));
@@ -103,6 +103,51 @@ public class testApp {
 
 
     }
+
+    public static void generateTableOnTime(SqlSession session){
+        List<String> calendar = new ArrayList<String>();
+        String prefix = "2020-11-1";
+        calendar.add("bond");
+        for (int i = 0; i < 10 ; i++) {
+            calendar.add(prefix+i);
+        }
+        DecimalFormat ft2 = new DecimalFormat("0.000");
+        Random r1 = new Random();
+        for (int i = 1; i <calendar.size() ; i++) {
+            //先获取某一天的全部交易行为 再创建前一天的表格 最后在这个基础上进行更新 完成新的表格
+            List<Debt> debtList = session.selectList("selectPreviousData",calendar.get(i-1));
+            List<Trans> transList = session.selectList("selectAllTransOnDate",calendar.get(i));
+            for (int j = 0; j <transList.size() ; j++) {
+                debtList.get(transList.get(j).getDebtID()-1).setNumber(
+                        debtList.get(transList.get(j).getDebtID()-1).getNumber() - transList.get(j).getBoughtScale()
+                );
+
+                //完整逻辑应该包括购买失败报错以及购买信息的判别
+            }
+            session.delete("dropTable",calendar.get(i));
+            session.update("createTableOnTime",calendar.get(i));
+
+            for (int j = 0; j < debtList.size(); j++) {
+//                r1.setSeed(10000+j);
+                debtList.get(j).setNetPrice(Float.parseFloat(ft2.format(r1.nextFloat()*5/100 +1)));
+//                debtList.get(i).setNumber(debtList.get(i).getNumber() - transList.);
+//                DebtWithDate dwd = new DebtWithDate();
+
+                DebtWithDate dwd = new DebtWithDate(debtList.get(j));
+                dwd.setDate(calendar.get(i));
+                session.insert("insertOnTable",dwd);
+//                session.insert("insertOneItem",debtList.get(j));
+
+            }
+
+
+
+
+        }
+//        session.update("createTableOnTime",)
+
+    }
+
     public static void main(String[] args) throws IOException {
         //ApplicationContext context = new ClassPathXmlApplicationContext("Beans.xml");
 
@@ -119,7 +164,9 @@ public class testApp {
 //        InsertRandomRows(session);
 //        插入随机信息
 //        userGenerator(session);
-        transactionListGenerator(session);
+//        transactionListGenerator(session);
+        generateTableOnTime(session);
+
 //        // 增加学生
 //        Student student1 = new Student();
 //        student1.setId(4);
